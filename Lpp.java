@@ -5,16 +5,16 @@ import java.awt.event.*;
 
 
 class Point2{
-    double x,y,z;
-    Point2(double x, double y){
+    int x,y,z;
+    Point2(int x, int y){
         this.x=x;
         this.y=y;
     }
 }
 
 class Line{
-    double x,y,c;
-    Line(double x, double y, double c){
+    int x,y,c;
+    Line(int x, int y, int c){
         this.x=x;
         this.y=y;
         this.c=c;
@@ -25,7 +25,7 @@ public class Lpp extends JFrame{
 
     JTextField x1,y1,c1;    //textfield declaration
     JTextField x2,y2,c2;    //textfield declaration    
-    JTextField x,y;         //textfield declaration
+    JTextField x0,y0;         //textfield declaration
 
     DrawPanel panel;    //panel declaration    
     JTextArea result;   //textarea declaration
@@ -33,8 +33,8 @@ public class Lpp extends JFrame{
     ArrayList<Point2> corners=new ArrayList<>();    //arraylist for storing feasible points
     Point2 optimal=null;
     Line l1,l2;
-    double Cx,Cy;
-    double bestz=Double.NEGATIVE_INFINITY;
+    int Cx,Cy;
+    int bestz=Integer.MIN_VALUE;
     Lpp(){
         setTitle("LPP using Graphical Method");
         setSize(600,600);
@@ -73,10 +73,10 @@ public class Lpp extends JFrame{
         p.setPreferredSize(new Dimension(260,600));
         p.setLayout(new GridLayout(13,1,5,5));
         p.add(new JLabel("Max Z=x+y"));
-        x=new JTextField("x");
-        y=new JTextField("y");
-        p.add(x);
-        p.add(y);
+        x0=new JTextField("x");
+        y0=new JTextField("y");
+        p.add(x0);
+        p.add(y0);
 
         x1=new JTextField("x1=");
         y1= new JTextField("y1=");
@@ -93,7 +93,59 @@ public class Lpp extends JFrame{
         p.add(y2);
         p.add(c2);
 
+        JButton solve=new JButton("Solve");
+        solve.addActionListener(e->solvelpp());
+        p.add(solve);
+
         return p;
+    }
+    void solvelpp(){
+        result.setText("0");
+        corners.clear();
+        optimal=null;
+        bestz=Integer.MIN_VALUE;
+
+        try{
+            Cx=Integer.parseInt(x0.getText().trim());
+            Cy=Integer.parseInt(y0.getText().trim());
+
+            int vx1=Integer.parseInt(x1.getText().trim());
+            int vy1 = Integer.parseInt(y1.getText().trim());
+            int vc1= Integer.parseInt(c1.getText().trim());
+            l1= new Line(vx1, vy1, vc1);
+
+            int vx2=Integer.parseInt(x2.getText().trim());
+            int vy2 = Integer.parseInt(y2.getText().trim());
+            int vc2= Integer.parseInt(c2.getText().trim());
+            l2= new Line(vx1, vy2, vc2);
+
+        }catch(Exception e){
+            result.setText("Invalid Input");
+            return;
+
+        }
+
+        Line  lx  = new Line(1,0,0);
+        Line ly = new Line(0,1,0);
+
+        Line[] lines={l1,l2,lx,ly};
+
+        ArrayList<Point2> pts= new ArrayList<>();
+
+        for (int i = 0; i < lines.length; i++) {
+            for (int j = i + 1; j < lines.length; j++) {
+                Point2 p = intersect(lines[i], lines[j]);
+                if (p != null && p.x >= 0 && p.y >= 0)
+                    pts.add(p);
+            }
+        }
+
+        for(Point2 p :pts){
+            if(isFeasible(p)){
+                addUniqueCorner(p);
+            }
+        }
+
     }
 
      public static void main(String[] args) {
