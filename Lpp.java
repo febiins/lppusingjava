@@ -21,6 +21,73 @@ class Line{
     }
 }
 
+class DrawPanel extends JPanel{
+    @Override
+    protected void paintComponent(Graphics g){
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D)g;
+
+        g2.setStroke(new BasicStroke(2));
+
+        int w = getWidth();
+        int h = getHeight();
+
+        int ox = 60;
+        int oy = h-60;
+
+        g2.drawLine( ox, oy,w-30,oy);
+        g2.drawLine(ox, oy,ox,30);
+
+        if(corners.isEmpty()){
+            return;
+        }
+
+        int maxX=0,maxY=0;
+
+        for(Point2 p : corners){
+            if(p.x>maxX){
+                maxX=p.x;
+            }
+            if(p.y>maxY){
+                maxY=p.y;
+            }
+        }
+        double scale= Math.min((w-100)/(double)maxX,(h-100)/(double)maxY);
+        corners.sort(Comparator.comparingDouble(p->Math.atan2(p.y,p.x)));
+
+        int n = corners.size();
+        int [] xs = new int [n];
+        int [] ys = new int [n];
+
+        for(int i=0;i<n;i++){
+            xs[i]=ox + (int) (corners.get(i).x * scale);
+            ys[i]=oy - (int)(corners.get(i).y * scale);
+        }
+
+        g2.setColor(new Color(0,200,0,90));
+        g2.fillPolygon(xs,ys,n);
+
+        g2.setColor(Color.GREEN.darker);
+        g2.drawPolygon(xs,ys,n);
+
+        g2.setColor(Color.BLUE);
+        for(Point2 p:corners){
+            int px= ox+(int)(p.x * scale);
+            int py= oy-(int)(p.y * scale);
+            g2.fillOval(px-4, py-4, 8, 8);
+        }
+
+        if(optimal != null){
+            int px = ox + (int)(optimal.x * scale);
+            int py = oy - (int)(optimal.y * scale);
+
+            g2.setColor(Color.RED);
+            g2.fillOval(px - 7, py - 7, 14, 14);
+            g2.drawString("OPT (" + optimal.x + "," + optimal.y + ")", px + 10, py - 10);
+        }
+    }
+}
+
 public class Lpp extends JFrame{
 
     JTextField x1,y1,c1;    //textfield declaration
@@ -145,6 +212,30 @@ public class Lpp extends JFrame{
                 addUniqueCorner(p);
             }
         }
+        if(corners.isEmpty()){
+            result.setText("No Feasilble Region");
+            panel.repaint();
+            return;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("x \t y \t z \t");
+        sb.append("---------------\n");
+
+        for(Point2 p : corners){
+            p.z=Cx * p.x + Cy * p.y;
+            sb.append(p.x +"\t"+ p.y+"\t"+p.z+"\n");
+            if(p.z > bestz){
+                bestz=p.x;
+                optimal=p;
+            }
+        }
+        sb.append("\nOptimal Point\n");
+        sb.append("x="+optimal.x+"\n");
+        sb.append("y="+optimal.y+"\n");
+        sb.append("Max Z="+optimal.z);
+
+        result.setText(sb.toString());
+        panel.repaint();
 
     }
 
