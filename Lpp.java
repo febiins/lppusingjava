@@ -25,6 +25,7 @@ public class Lpp extends JFrame {
     JTextField x1, y1, c1;
     JTextField x2, y2, c2;
     JTextField x0, y0;
+    JRadioButton maxBtn, minBtn;
 
     DrawPanel panel;
     JTextArea result;
@@ -35,7 +36,7 @@ public class Lpp extends JFrame {
     int Cx, Cy;
     int bestz = Integer.MIN_VALUE;
 
-    Lpp() {
+   public Lpp() {
         setTitle("LPP using Graphical Method");
         setSize(900, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -179,6 +180,15 @@ public class Lpp extends JFrame {
         p.add(x0);
         p.add(y0);
 
+        maxBtn = new JRadioButton("Maximize", true);
+        p.add(maxBtn);
+        minBtn = new JRadioButton("Minimize");
+        p.add(minBtn);
+        ButtonGroup bg = new ButtonGroup();
+        bg.add(maxBtn);
+        bg.add(minBtn);
+
+        p.add(new JLabel("Constraint 1: a1x + b1y ≤ c1"));
         x1 = new JTextField("x1");
         y1 = new JTextField("y1");
         c1 = new JTextField("c1");
@@ -186,6 +196,7 @@ public class Lpp extends JFrame {
         p.add(y1);
         p.add(c1);
 
+        p.add(new JLabel("Constraint 2: a2x + b2y ≤ c2"));
         x2 = new JTextField("x2");
         y2 = new JTextField("y2");
         c2 = new JTextField("c2");
@@ -224,6 +235,11 @@ public class Lpp extends JFrame {
             result.setText("Invalid Input");
             return;
         }
+        if(maxBtn.isSelected()){
+            bestz = Integer.MIN_VALUE;
+        } else {
+            bestz = Integer.MAX_VALUE;
+        }
 
         Line lx = new Line(1, 0, 0);
         Line ly = new Line(0, 1, 0);
@@ -259,17 +275,27 @@ public class Lpp extends JFrame {
             p.z = Cx * p.x + Cy * p.y;
             sb.append(p.x + "\t" + p.y + "\t" + p.z + "\n");
 
-            if (p.z > bestz) {
-                bestz = p.z;
-                optimal = p;
+            if(maxBtn.isSelected()){
+                if (p.z > bestz) {
+                    bestz = p.z;
+                    optimal = p;
+                }
+            } else {
+                if (p.z < bestz) {
+                    bestz = p.z;
+                    optimal = p;
+                }
             }
         }
 
         sb.append("\nOptimal Point:\n");
         sb.append("x = " + optimal.x + "\n");
         sb.append("y = " + optimal.y + "\n");
-        sb.append("Max Z = " + optimal.z);
-
+        if(maxBtn.isSelected()){
+            sb.append("Max Z= "+ bestz + "\n");
+        } else {
+            sb.append("Min Z= "+ bestz + "\n");
+        }
         result.setText(sb.toString());
         panel.repaint();
     }
